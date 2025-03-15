@@ -87,7 +87,7 @@ router.use('/operacion', async (req, res) => {
     }
 });
 
-// /api/caliente/operacion?fechaInicio=2025-03-10&fechaFin=2025-03-10
+// /api/caliente/operacionTiempo?fechaInicio=2025-03-10&fechaFin=2025-03-10
 router.use('/operacionTiempo', async (req, res) => {
 
     const fechaI = req.query.fechaInicio;
@@ -101,7 +101,7 @@ router.use('/operacionTiempo', async (req, res) => {
                 "Fecha",
                 row_number() OVER (ORDER BY "Fecha") AS rn,
                 row_number() OVER (PARTITION BY "Operacion" ORDER BY "Fecha") AS rn_op
-            FROM "Coca-cola"."tblCipFrio"
+            FROM "Coca-cola"."tblCipCaliente"
             WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59'
             ),
             agrupado AS (

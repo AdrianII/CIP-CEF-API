@@ -87,4 +87,46 @@ router.use('/operacionTiempo', async (req, res) => {
     }
 });
 
+router.use('/secuencia', async (req, res) => {
+
+    const folio = req.query.folio;
+
+    try {
+        const query = `
+            SELECT "Operacion", to_char(MIN("Fecha"), 'HH24:MI') AS "Inicio", to_char(MAX("Fecha"), 'HH24:MI') AS "Fin", "FolioOperacion"
+	            FROM "Coca-cola"."tblCipFrio"
+	            WHERE "FolioOperacion" = ${folio} AND "Operacion"!='INACTIVO'
+	            GROUP BY "Operacion", "FolioOperacion"
+	            ORDER BY "Inicio" DESC;
+        `;
+        
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error en la consulta:', error);
+        res.status(500).json({ error: 'Error al obtener las temperaturas' });
+    }
+});
+
+router.use('/secuenciaFecha', async (req, res) => {
+
+    const fecha = req.query.fecha;
+
+    try {
+        const query = `
+            SELECT "Operacion", to_char(MIN("Fecha"), 'HH24:MI') AS "Inicio", to_char(MAX("Fecha"), 'HH24:MI') AS "Fin", "FolioOperacion"
+	            FROM "Coca-cola"."tblCipFrio"
+	            WHERE "Fecha" > '${fecha} 00:00:00' AND "Fecha" > '${fecha} 23:59:59' AND "Operacion"!='INACTIVO'
+	            GROUP BY "Operacion", "FolioOperacion"
+	            ORDER BY "Inicio" DESC;
+        `;
+        
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error en la consulta:', error);
+        res.status(500).json({ error: 'Error al obtener las temperaturas' });
+    }
+});
+
 module.exports = router;

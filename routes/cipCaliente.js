@@ -8,12 +8,15 @@ router.use('/temperatura', async (req, res) => {
 
     const fechaI = req.query.fechaInicio;
     const fechaF = req.query.fechaFin;
+    const operacion = req.query.Operacion;
+
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
 
     try {
         const query = `
             SELECT "TemperaturaEntrada" AS "Entrada", "TemperaturaSalida" AS "Salida", to_char("Fecha", 'HH24:MI') AS "Fecha"
 	            FROM "Coca-cola"."tblCipCaliente"
-	            WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59';
+	            WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59'${OP};
         `;
         
         const result = await pool.query(query);
@@ -29,12 +32,15 @@ router.use('/conductividad', async (req, res) => {
 
     const fechaI = req.query.fechaInicio;
     const fechaF = req.query.fechaFin;
+    const operacion = req.query.Operacion;
+
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
 
     try {
         const query = `
             SELECT "Conductividad", to_char("Fecha", 'HH24:MI') AS "Fecha"
 	            FROM "Coca-cola"."tblCipCaliente"
-	            WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59';
+	            WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59'${OP};
         `;
         
         const result = await pool.query(query);
@@ -50,12 +56,15 @@ router.use('/flujo', async (req, res) => {
 
     const fechaI = req.query.fechaInicio;
     const fechaF = req.query.fechaFin;
+    const operacion = req.query.Operacion;
+
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
 
     try {
         const query = `
             SELECT "Flujo", to_char("Fecha", 'HH24:MI') AS "Fecha"
 	            FROM "Coca-cola"."tblCipCaliente"
-	            WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59';
+	            WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59'${OP};
         `;
         
         const result = await pool.query(query);
@@ -92,6 +101,9 @@ router.use('/operacionTiempo', async (req, res) => {
 
     const fechaI = req.query.fechaInicio;
     const fechaF = req.query.fechaFin;
+    const operacion = req.query.Operacion;
+
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
 
     try {
         const query = `
@@ -102,7 +114,7 @@ router.use('/operacionTiempo', async (req, res) => {
                 row_number() OVER (ORDER BY "Fecha") AS rn,
                 row_number() OVER (PARTITION BY "Operacion" ORDER BY "Fecha") AS rn_op
             FROM "Coca-cola"."tblCipCaliente"
-            WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59'
+            WHERE "Fecha" BETWEEN '${fechaI} 00:00:00' AND '${fechaF} 23:59:59'${OP}
             ),
             agrupado AS (
                 SELECT 
@@ -165,6 +177,28 @@ router.use('/secuenciaFecha', async (req, res) => {
           AND "Operacion" != 'INACTIVO'
         GROUP BY "Operacion", "FolioOperacion"
         ORDER BY MIN("Fecha");
+      `;
+  
+      const result = await pool.query(query, [
+        `${req.query.fecha} 00:00:00`,
+        `${req.query.fecha} 23:59:59`
+      ]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Error al obtener secuencias' });
+    }
+  });
+
+  //http://127.0.0.1:8080/api/caliente/SecuenciasFolio?fecha=2025-04-07
+  router.use('/SecuenciasFolio', async (req, res) => {
+    try {
+      const query = `
+        SELECT "FolioOperacion"
+	        From "Coca-cola"."tblCipCaliente"
+	        WHERE "Fecha" BETWEEN $1 AND $2
+	        GROUP BY "FolioOperacion"
       `;
   
       const result = await pool.query(query, [

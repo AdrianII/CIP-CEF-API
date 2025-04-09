@@ -116,23 +116,32 @@ router.use('/secuencia', async (req, res) => {
 
 router.use('/secuenciaFecha', async (req, res) => {
 
-    const fecha = req.query.fecha;
-
     try {
         const query = `
-            SELECT "Operacion", to_char(MIN("Fecha"), 'HH24:MI') AS "Inicio", to_char(MAX("Fecha"), 'HH24:MI') AS "Fin", "FolioOperacion"
-	            FROM "Coca-cola"."tblCipFrio"
-	            WHERE "Fecha" > '${fecha} 00:00:00' AND "Fecha" > '${fecha} 23:59:59' AND "Operacion"!='INACTIVO'
-	            GROUP BY "Operacion", "FolioOperacion"
-	            ORDER BY "Inicio" DESC;
+          SELECT 
+            "Operacion", 
+            MIN("Fecha") AS "Inicio",
+            MAX("Fecha") AS "Fin",
+            "FolioOperacion",
+            AVG("OzonoEntrada") as avg_entrada,
+            AVG("OzonoSalida") as avg_salida
+          FROM "Coca-cola"."tblCipFrio"
+          WHERE "Fecha" BETWEEN $1 AND $2
+            AND "Operacion" != 'INACTIVO'
+          GROUP BY "Operacion", "FolioOperacion"
+          ORDER BY MIN("Fecha");
         `;
+    
+        const result = await pool.query(query, [
+          `${req.query.fecha} 00:00:00`,
+          `${req.query.fecha} 23:59:59`
+        ]);
         
-        const result = await pool.query(query);
         res.json(result.rows);
-    } catch (error) {
-        console.error('Error en la consulta:', error);
-        res.status(500).json({ error: 'Error al obtener las temperaturas' });
-    }
+      } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Error al obtener secuencias' });
+      }
 });
 
 //http://127.0.0.1:8080/api/frio/SecuenciasFolio?fecha=2025-04-07

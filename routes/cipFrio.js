@@ -166,4 +166,24 @@ router.use('/SecuenciasFolio', async (req, res) => {
     }
   });
 
+  //http://127.0.0.1:8080/api/frio/DatosCip?Folio=20
+  router.use('/datosCip', async (req, res) => {
+    try {
+      const query = `
+        SELECT "Id", "Usuario", "Equipo", "TipoCip"
+	        FROM "Coca-cola"."tblOperacionFrio"
+	        WHERE "Id" = $1;
+      `;
+  
+      const result = await pool.query(query, [
+        req.query.Folio
+      ]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Error al obtener secuencias' });
+    }
+  });
+
 module.exports = router;

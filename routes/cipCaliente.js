@@ -10,7 +10,11 @@ router.use('/temperatura', async (req, res) => {
     const fechaF = req.query.fechaFin;
     const operacion = req.query.Operacion;
 
-    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=(
+                SELECT "Id" 
+                FROM "Coca-cola"."tblOperacionCaliente"  
+                WHERE "Folio" = '${operacion}'
+              )`;
 
     try {
         const query = `
@@ -34,7 +38,11 @@ router.use('/conductividad', async (req, res) => {
     const fechaF = req.query.fechaFin;
     const operacion = req.query.Operacion;
 
-    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=(
+                SELECT "Id" 
+                FROM "Coca-cola"."tblOperacionCaliente"  
+                WHERE "Folio" = '${operacion}'
+              )`;
 
     try {
         const query = `
@@ -58,7 +66,11 @@ router.use('/flujo', async (req, res) => {
     const fechaF = req.query.fechaFin;
     const operacion = req.query.Operacion;
 
-    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=(
+                SELECT "Id" 
+                FROM "Coca-cola"."tblOperacionCaliente"  
+                WHERE "Folio" = '${operacion}'
+              )`;
 
     try {
         const query = `
@@ -103,7 +115,11 @@ router.use('/operacionTiempo', async (req, res) => {
     const fechaF = req.query.fechaFin;
     const operacion = req.query.Operacion;
 
-    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=(
+                SELECT "Id" 
+                FROM "Coca-cola"."tblOperacionCaliente"  
+                WHERE "Folio" = '${operacion}'
+              )`;
 
     try {
         const query = `
@@ -195,10 +211,13 @@ router.use('/secuenciaFecha', async (req, res) => {
   router.use('/SecuenciasFolio', async (req, res) => {
     try {
       const query = `
-        SELECT "FolioOperacion"
-	        From "Coca-cola"."tblCipCaliente"
-	        WHERE "Fecha" BETWEEN $1 AND $2
-	        GROUP BY "FolioOperacion"
+        SELECT op."Folio" AS "FolioOperacion"
+          FROM "Coca-cola"."tblOperacionCaliente" op
+          INNER JOIN "Coca-cola"."tblCipCaliente" cip
+            ON op."Id" = cip."FolioOperacion"
+          WHERE cip."Fecha" BETWEEN $1 AND $2
+          GROUP BY op."Folio"
+          ORDER BY op."Folio";
       `;
   
       const result = await pool.query(query, [
@@ -218,7 +237,7 @@ router.use('/secuenciaFecha', async (req, res) => {
       const query = `
         SELECT "Id", "Usuario", "Equipo", "TipoCip"
 	        FROM "Coca-cola"."tblOperacionCaliente"
-	        WHERE "Id" = $1;
+	        WHERE "Folio" = $1;
       `;
   
       const result = await pool.query(query, [

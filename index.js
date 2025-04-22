@@ -9,6 +9,7 @@ const port = process.env.PORT || 8080  // establecemos nuestro puerto
 var corsOptions = {
     //origin: 'http://127.0.0.1:3000',
     origin: 'http://127.0.0.1:3002',
+    //origin: 'http://192.168.100.126:333',
     //origin: 'http://10.21.64.160:333',
     optionsSuccessStatus: 200 // For legacy browser support
 }

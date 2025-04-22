@@ -10,7 +10,11 @@ router.use('/ozono', async (req, res) => {
     const fechaF = req.query.fechaFin;
     const operacion = req.query.Operacion;
 
-    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=(
+                SELECT "Id" 
+                FROM "Coca-cola"."tblOperacionFrio"  
+                WHERE "Folio" = '${operacion}'
+              )`;
 
     try {
         const query = `
@@ -48,14 +52,18 @@ router.use('/operacion', async (req, res) => {
     }
 });
 
-// /api/caliente/operacionTiempo?fechaInicio=2025-03-10&fechaFin=2025-03-10
+// /api/frio/operacionTiempo?fechaInicio=2025-03-10&fechaFin=2025-03-10
 router.use('/operacionTiempo', async (req, res) => {
 
     const fechaI = req.query.fechaInicio;
     const fechaF = req.query.fechaFin;
     const operacion = req.query.Operacion;
 
-    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=${operacion}`;
+    const OP = typeof operacion === 'undefinded' ? '' : operacion === 'N/A' ? '' : ` AND "FolioOperacion"=(
+      SELECT "Id" 
+      FROM "Coca-cola"."tblOperacionFrio"  
+      WHERE "Folio" = '${operacion}'
+    )`;
 
     try {
         const query = `
@@ -148,10 +156,13 @@ router.use('/secuenciaFecha', async (req, res) => {
 router.use('/SecuenciasFolio', async (req, res) => {
     try {
       const query = `
-        SELECT "FolioOperacion"
-	        From "Coca-cola"."tblCipFrio"
-	        WHERE "Fecha" BETWEEN $1 AND $2
-	        GROUP BY "FolioOperacion"
+        SELECT op."Folio" AS "FolioOperacion"
+          FROM "Coca-cola"."tblOperacionFrio" op
+          INNER JOIN "Coca-cola"."tblCipFrio" cip
+            ON op."Id" = cip."FolioOperacion"
+          WHERE cip."Fecha" BETWEEN $1 AND $2
+          GROUP BY op."Folio"
+          ORDER BY op."Folio";
       `;
   
       const result = await pool.query(query, [
@@ -172,7 +183,7 @@ router.use('/SecuenciasFolio', async (req, res) => {
       const query = `
         SELECT "Id", "Usuario", "Equipo", "TipoCip"
 	        FROM "Coca-cola"."tblOperacionFrio"
-	        WHERE "Id" = $1;
+	        WHERE "Folio" = $1;
       `;
   
       const result = await pool.query(query, [
